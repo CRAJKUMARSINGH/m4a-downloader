@@ -1,6 +1,5 @@
 import streamlit as st
-import ffdown
-ffdown.install()  # Installs ffmpeg binaries at runtime
+
 import os
 import tempfile
 from urllib.error import URLError
