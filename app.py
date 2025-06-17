@@ -1,3 +1,5 @@
+import ffdown
+ffdown.install()  # Installs ffmpeg binaries at runtime
 import streamlit as st
 import os
 import tempfile
