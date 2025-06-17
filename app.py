@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import streamlit as st
 import os
 import tempfile
@@ -192,5 +191,5 @@ if url:
 
 # Footer
 st.markdown("---")
->>>>>>> b10af41762c32aab6cc1035c9a31b09b16613e7f
+
 st.markdown("<div style='text-align:center; color:gray;'>Built with 🐍 Python, Streamlit & yt-dlp</div>", unsafe_allow_html=True)
