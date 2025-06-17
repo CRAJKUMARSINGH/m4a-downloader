@@ -1,0 +1,57 @@
+# 🔧 BASIC SETUP (Use this for normal push)
+# Navigate to your project folder
+cd C:\Users\YourUsername\m4a-downloader
+
+# Initialize Git
+git init
+
+# Add all files
+git add .
+
+# Commit changes
+git commit -m "Initial commit"
+
+# Link to GitHub repo (replace with your username)
+git remote add origin https://github.com/CRAJKUMARSINGH/m4a-downloader.git 
+
+# Rename branch to 'main'
+git branch -M main
+
+# Push to GitHub
+git push -u origin main
+
+
+# 🔁 FORCE PUSH (Use only if you want to overwrite remote)
+git push --force-with-lease origin main
+
+
+# 🔄 PULL & RESOLVE CONFLICTS (If you get errors)
+# Pull latest changes
+git pull --set-upstream origin main
+
+# Resolve conflicts manually in files
+# Then run:
+git add .
+git commit -m "Merge changes"
+git push origin main
+
+
+# 🧹 CLEAN RESET (Use if stuck and want to start fresh)
+# Remove existing Git history
+rm -rf .git
+
+# Re-initialize
+git init
+
+# Add all files again
+git add .
+git commit -m "Fresh start"
+
+# Set remote again
+git remote add origin https://github.com/CRAJKUMARSINGH/m4a-downloader.git 
+
+# Rename branch
+git branch -M main
+
+# Force push
+git push -f origin main
