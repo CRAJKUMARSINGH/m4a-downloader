@@ -1,0 +1,8 @@
+<<<<<<< HEAD
+streamlit==1.29.0
+yt-dlp>=2023.10.17
+=======
+streamlit==1.29.0
+yt-dlp>=2023.10.17
+>>>>>>> b10af41762c32aab6cc1035c9a31b09b16613e7f
+Pillow==9.5.0
