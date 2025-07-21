@@ -3,3 +3,6 @@ yt-dlp
 Pillow
 pydub
 ffmpeg-python
+ffmpeg-downloader
+python-vlc
+pyaudio
