@@ -1,31 +1,18 @@
-# PATCH v3 — Two bugs fixed
+# KEY CHANGE: removed the /api/video-info and /api/playlist-info redirect rules.
 #
-# ── Bug A (404 on all functions) ──────────────────────────────────────────────
-# When [build].base is set, Netlify resolves [functions].directory relative to
-# that base directory.  With base="artifacts/m4a-downloader", the path
-# "netlify/functions" resolved to "artifacts/m4a-downloader/netlify/functions"
-# which does not exist → Netlify registered zero functions → every call to
-# /api/video-info and /api/playlist-info returned 404.
+# Both functions use Netlify Functions v2 (export default async function handler(req, ctx))
+# with "export const config = { path }" at the bottom of each file.
+# v2 functions register their path DIRECTLY — Netlify routes requests to them
+# before the SPA fallback fires. Adding a redirect that points to
+# /.netlify/functions/* does NOT work for v2 functions (that URL only works for
+# old v1 functions) and causes the SPA fallback to serve index.html instead,
+# which is why resp.json() was throwing "Unexpected response (status 404/200-HTML)".
 #
-# Fix: remove [build].base and spell out paths from the repository root.
-# Now [functions].directory = "netlify/functions" correctly resolves to
-# <repo-root>/netlify/functions where the functions actually live.
-#
-# ── Bug B (playlist-info used dead Invidious/Piped instances) ─────────────────
-# All third-party Invidious and Piped public instances are shut down or blocking
-# requests.  The playlist-info Netlify function has been rewritten as a thin
-# proxy to the Express API server (BACKEND_URL), which already has a working
-# yt-dlp-powered GET /api/playlist-info route.
-# Set BACKEND_URL in the Netlify dashboard to your deployed Express server root
-# (e.g. https://my-api.onrender.com).  The function returns a 503 with a clear
-# setup message if BACKEND_URL is not yet configured.
-#
-# ── Bug C (useless pip install) ───────────────────────────────────────────────
-# Removed `pip install yt-dlp` from the build command — yt-dlp installed at
-# build time is never reachable inside Netlify's Lambda function runtime.
+# Other fixes still in place:
+#   • No [build].base — functions directory resolves from repo root correctly.
+#   • pip install yt-dlp removed — yt-dlp is not accessible in Lambda runtime.
 
 [build]
-  # No `base` — all paths are relative to the repository root.
   publish = "artifacts/m4a-downloader/dist/public"
   command = "cd artifacts/m4a-downloader && npm run build"
 
@@ -33,24 +20,22 @@
   NODE_VERSION   = "20"
   PYTHON_VERSION = "3.11"
 
-# ─── Netlify Functions ────────────────────────────────────────────────────────
-# /api/video-info    → Netlify function  (YouTube oEmbed, no backend needed)
-# /api/playlist-info → Netlify function  (proxies to BACKEND_URL/api/playlist-info)
-# /api/downloads/*   → Express backend   (BACKEND_URL must be set)
-# ─────────────────────────────────────────────────────────────────────────────
+# /api/video-info    — handled by netlify/functions/video-info.mts    (config.path)
+# /api/playlist-info — handled by netlify/functions/playlist-info.mts (config.path)
+# NO redirects for those two paths — v2 functions own them directly.
 
-[[redirects]]
-  from   = "/api/video-info"
-  to     = "/.netlify/functions/video-info"
-  status = 200
-  force  = true
+[functions]
+  directory        = "netlify/functions"
+  node_bundler     = "esbuild"
+  included_files   = ["netlify/functions/**"]
 
-[[redirects]]
-  from   = "/api/playlist-info"
-  to     = "/.netlify/functions/playlist-info"
-  status = 200
-  force  = true
+[functions."video-info"]
+  timeout = 10
 
+[functions."playlist-info"]
+  timeout = 26
+
+# Downloads — still need proxying to the persistent Express backend
 [[redirects]]
   from   = "/api/downloads/:jobId/events"
   to     = ":BACKEND_URL/api/downloads/:jobId/events"
@@ -69,18 +54,9 @@
   status = 200
   force  = true
 
-[functions]
-  directory        = "netlify/functions"   # relative to repo root (no base set above)
-  node_bundler     = "esbuild"
-  included_files   = ["netlify/functions/**"]
-
-[functions."video-info"]
-  timeout = 10    # oEmbed is fast; 10 s is plenty
-
-[functions."playlist-info"]
-  timeout = 26    # proxy call; Express/yt-dlp does the heavy work
-
-# SPA fallback — all unmatched routes serve index.html
+# SPA fallback — serves index.html for all unmatched paths.
+# v2 function paths (/api/video-info, /api/playlist-info) are matched by
+# Netlify BEFORE this rule, so they never reach the SPA fallback.
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
