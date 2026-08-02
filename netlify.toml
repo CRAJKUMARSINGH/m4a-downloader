@@ -25,8 +25,19 @@
 # playlist-info  → netlify/functions/playlist-info.mts (pure HTTP, < 15 s)
 # downloads/*    → proxied to BACKEND_URL (persistent Express server)
 # ─────────────────────────────────────────────────────────────────────────────
-# Note: Functions have their paths configured in the code (export const config = { path: ... })
-# so no redirects are needed for video-info and playlist-info
+# These redirects ensure function routes are handled before the SPA fallback
+
+[[redirects]]
+  from   = "/api/video-info"
+  to     = "/.netlify/functions/video-info"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/playlist-info"
+  to     = "/.netlify/functions/playlist-info"
+  status = 200
+  force  = true
 
 [[redirects]]
   from   = "/api/downloads/:jobId/events"

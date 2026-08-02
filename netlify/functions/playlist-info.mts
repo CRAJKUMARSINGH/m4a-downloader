@@ -151,7 +151,3 @@ export default async function handler(req: Request, _ctx: Context) {
     });
   }
 }
-
-export const config = {
-  path: "/api/playlist-info",
-};
