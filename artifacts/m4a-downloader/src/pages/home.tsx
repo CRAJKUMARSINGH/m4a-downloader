@@ -212,7 +212,21 @@ export default function Home() {
       setItems([]);
       try {
         const resp = await fetch(`${BASE}/api/playlist-info?url=${encodeURIComponent(rawUrl)}`);
-        const json = await resp.json();
+
+        // PATCH Bug 3: Guard resp.json() separately so a non-JSON response
+        // (e.g. an HTML Netlify timeout page) surfaces a clear error instead
+        // of a generic JS parse exception landing in the catch block.
+        let json: Record<string, unknown>;
+        try {
+          json = await resp.json();
+        } catch {
+          setPlaylistError(
+            `Unexpected response from server (status ${resp.status}). ` +
+            `The playlist service may be temporarily unavailable — please try again.`
+          );
+          return;
+        }
+
         if (!resp.ok) {
           setPlaylistError(json.error || 'Failed to fetch playlist');
           return;
@@ -221,7 +235,9 @@ export default function Home() {
         setItems(entries.map((e) => ({ url: e.url, format: data.format, prefetchedInfo: e })));
         setPlaylistMeta({ count: json.count });
       } catch (e) {
-        setPlaylistError('Network error fetching playlist');
+        // PATCH Bug 3: Surface the real error message so it is actionable.
+        const detail = e instanceof Error ? e.message : String(e);
+        setPlaylistError(`Network error fetching playlist (${detail})`);
       } finally {
         setPlaylistLoading(false);
       }

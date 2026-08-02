@@ -1,18 +1,29 @@
+# PATCH: Bug 4 – Removed useless `pip install yt-dlp` from build command.
+#
+# yt-dlp was installed during build but Netlify functions run in AWS Lambda
+# where the build container's filesystem is not accessible. Installing yt-dlp
+# at build time added ~20–30 s to every deploy and gave a false sense of
+# security. The video-info and playlist-info functions have been rewritten to
+# use pure-HTTP calls (Invidious API) so no Python binary is needed.
+#
+# NOTE: Actual audio *downloads* (POST /api/downloads, SSE events, file serve)
+# require the Express back-end running on a persistent server (e.g. Render,
+# Railway). Set BACKEND_URL in the Netlify dashboard to your deployed
+# Express server's root URL (e.g. https://my-api.onrender.com).
+
 [build]
   base    = "artifacts/m4a-downloader"
   publish = "dist/public"
-  # Install yt-dlp before building
-  command = "pip install yt-dlp && npm run build"
+  command = "npm run build"   # ← removed `pip install yt-dlp &&` (see note above)
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION   = "20"
   PYTHON_VERSION = "3.11"
 
 # ─── Netlify Functions ────────────────────────────────────────────────────────
-# video-info  →  netlify/functions/video-info  (fast, < 10 s)
-# downloads   →  netlify/functions/create-download (background fn, up to 15 min)
-# events / file endpoints require a persistent server — deploy the Express API
-# (artifacts/api-server) on Render / Railway and set BACKEND_URL below.
+# video-info     → netlify/functions/video-info.mts    (pure HTTP, < 15 s)
+# playlist-info  → netlify/functions/playlist-info.mts (pure HTTP, < 15 s)
+# downloads/*    → proxied to BACKEND_URL (persistent Express server)
 # ─────────────────────────────────────────────────────────────────────────────
 
 [[redirects]]
@@ -54,10 +65,7 @@
   timeout = 26
 
 [functions."playlist-info"]
-  timeout = 60
-
-[functions."create-download"]
-  timeout = 900
+  timeout = 26    # ← reduced from 60 s; each instance probe now times out at 15 s
 
 # SPA fallback — all unmatched routes serve index.html
 [[redirects]]
