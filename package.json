@@ -1,0 +1,16 @@
+{
+  "name": "m4a-audio-downloader",
+  "version": "1.0.0",
+  "description": "YouTube audio downloader powered by yt-dlp concepts via Netlify serverless functions",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.8",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

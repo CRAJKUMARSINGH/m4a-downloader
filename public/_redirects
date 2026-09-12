@@ -1,0 +1,6 @@
+# Route /api/* to Netlify functions (query strings are passed through automatically)
+/api/info       /.netlify/functions/info      200
+/api/download   /.netlify/functions/download  200
+
+# SPA fallback — serve index.html for any unmatched path
+/*              /index.html                   200
